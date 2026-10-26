@@ -2,7 +2,7 @@ import os
 import sys
 import tkinter as tk
 from tkinter import *
-from tkinter import font, messagebox, scrolledtext
+from tkinter import font, messagebox, scrolledtext, ttk
 from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import webbrowser
@@ -29,15 +29,15 @@ bg_music_path = resource_path("oldtimebackground.mp3").replace(os.sep, '/')
 
 root = tk.Tk()
 root.title("Old Timey Speak")
-root.geometry("800x550+100+100")
+root.geometry("800x600+100+100")
 root.resizable(False, False)
 root.configure(bg=background_colour, takefocus=True)
 
 
 # Fonts
 titleFont = font.Font(family="Georgia", size=28, underline=True, weight="bold")
-textFont = font.Font(family="Georgia", size=15)
-buttonFont = font.Font(family="Georgia", size=17)
+textFont = font.Font(family="Georgia", size=16)
+buttonFont = font.Font(family="Georgia", size=18)
 
 
 titleLabel = Label(root,
@@ -60,9 +60,75 @@ descLabel = Label(root,
 )
 descLabel.pack(pady=10)
 
+textContainer = tk.Frame(root, bg=background_colour)
+textContainer.pack(fill=tk.BOTH, padx=20, pady=15)
+textContainer.columnconfigure(0, weight=1)
+textContainer.columnconfigure(1, weight=1)
+textContainer.rowconfigure(0, weight=1)
 
 
+userField = scrolledtext.ScrolledText(textContainer,
+    wrap=tk.WORD,
+    height=12,
+    font=textFont,
+    bg="#2A1808",
+    fg="#F5EDE3",
+    insertbackground="#F5BA4B",
+    selectbackground="#A76727"
+)
+userField.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
+AIField = scrolledtext.ScrolledText(textContainer,
+    wrap=tk.WORD,
+    height=12,
+    font=textFont,
+    bg="#2A1808",
+    fg="#F5EDE3",
+    insertbackground="#F5BA4B",
+    selectbackground="#A76727",
+    state=tk.DISABLED
+)
+AIField.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+
+AIField.insert(tk.END, "Hello World!")
+userText = userField.get("1.0", tk.END)
+
+def copy_AI_text():
+    AIField.update()
+    AIText = AIField.get("1.0", tk.END)
+    root.clipboard_clear()
+    root.clipboard_append(str(AIText))
+    print(repr(AIText))
+    root.update()
+
+
+buttonContainer = tk.Frame(root, bg=background_colour)
+buttonContainer.pack(fill=tk.X, padx=20, pady=(0, 15))
+buttonContainer.columnconfigure(0, weight=1, uniform="buttons")
+buttonContainer.columnconfigure(1, weight=1, uniform="buttons")
+buttonContainer.rowconfigure(0, weight=1)
+
+userSubmitButton = Button(buttonContainer,
+    text="SUBMIT",
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+    command=None,
+    font=buttonFont
+)
+userSubmitButton.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+
+copyTextButton = Button(buttonContainer,
+    text="COPY TEXT",
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+    command=copy_AI_text,
+    font=buttonFont
+)
+copyTextButton.grid(row=0, column=1, sticky="ew", padx=(10, 0))
 
 
 play_music = tk.BooleanVar(value=True)
@@ -95,11 +161,12 @@ moreMenu = Menu(menubar,
     activeforeground=active_foreground_colour
 )
 menubar.add_cascade(label="More", menu=moreMenu)
-moreMenu.add_command(label="Test", command=None)
+moreMenu.add_command(label="Open Settings Menu", command=None)
 moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 
+userField.focus()
 root.config(menu=menubar)
 root.mainloop()
