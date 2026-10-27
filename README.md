@@ -1,5 +1,9 @@
 # Old-Timey-Speak
 A simple app made in TKinter and Python which allows you to use an AI to change your words into something in an old timey British language!
+This app is available on: 
+ + Linux (Ubuntu & Redhat/Fedora & Arch)
+ + Windows (x64 & x32)
+ + MacOS (Intel & Apple Silicon)
 
 
 Check out my GitHub [here](https://github.com/sadgituser) or my [Etsy Shop](https://theprintedcraftuk.etsy.com)!

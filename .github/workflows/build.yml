@@ -1,0 +1,125 @@
+name: Build Old Timey Speak Executables (for different Operating Systems)
+
+on:
+    workflow_dispatch:
+
+jobs:
+    build-linux-ubuntu:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout Code
+            uses: actions/checkout@v4
+          - name: Set Up Python
+            uses: actions/setup-python@v5
+            with:
+                python-version: '3.10'
+          - name: Install Dependencies
+            run: |
+              sudo apt-get update && sudo apt-get install -y python-tk
+              pip install --upgrade pip
+              pip install pyinstaller pillow openai pygame-ce
+          - name: Build Executable
+            # Add an icon to the pyinstaller command!
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+          - name: Upload Atrifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: Old-Timey-Speak-Linux-Ubuntu
+                path: dist/Old-Timey-Speak
+    
+    build-linux-redhat:
+        runs-on: ubuntu-latest
+        container: fedora:latest
+        steps:
+          - name: Install System Dependencies
+            run: dnf install -y git python3 python3-pip python3-tkinter binutils findutils gcc
+          - name: Checkout Code
+            uses: actions/checkout@v4
+          - name: Install Python Packages
+            run: pip3 install pyinstaller pillow openai pygame-ce
+          - name: Build Executable
+            # Add an icon to the pyinstaller command!
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: Old-Timey-Speak-Linux-Redhat
+                path: dist/Old-Timey-Speak
+            
+    build-linux-arch:
+        runs-on: ubuntu-latest
+        container: archlinux:base-devel
+        steps:
+          - name: Install System Dependencies
+            run: pacman -Sy --noconfirm git python python-pip tk
+          - name: Checkout Code
+            uses: actions/checkout@v4
+          - name: Install Python Packages
+            run: pip install --break-system-packages pyinstaller pillow openai pygame-ce
+          - name: Build Executable
+            # Add an icon to the pyinstaller command!
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: Old-Timey-Speak-Linux-Redhat
+                path: dist/Old-Timey-Speak
+
+    build-windows:
+        runs-on: windows-latest
+        strategy:
+            matrix:
+                include:
+                  - arch: x64
+                    name: windows-x64
+                  - arch: x86
+                    name: windows-x32
+        steps: 
+          - name: Checkout Code
+            uses: actions/checkout@v4
+          - name: Set Up Python (${{ matrix.arch }})
+            uses: actions/setup-python@v5
+            with:
+                python-version: '3.10'
+                architecture: ${{ matrix.arch }}
+          - name: Install Dependencies
+            run: |
+              python -m pip install --upgrade pip
+              pip install pyinstaller pillow openai pygame-ce
+          - name: Build Executable
+            # Add an icon to the pyinstaller command!
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets;Assets" Old-Timey-Speak.py
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: Old-Timey-Speak-${{ matrix.name }}
+                path: dist/Old-Timey-Speak.exe
+
+    build-macos:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                  - os: macos-13
+                    name: macos-intel
+                  - os: macos-14
+                    name: macos-apple-silicon
+        steps:
+          - name: Checkout Code
+            uses: actions/checkout@v4
+          - name: Set Up Python
+            uses: actions/setup-python@v5
+            with:
+                python-version: '3.10'
+          - name: Install Dependencies
+            run: |
+              python -m pip install --upgrade pip
+              pip install pyinstaller pillow openai pygame-ce
+          - name: Build Executable
+            # Add an icon to the pyinstaller command!
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: Old-Timey-Speak-${{ matrix.name }}
+                path: dist/Old-Timey-Speak
