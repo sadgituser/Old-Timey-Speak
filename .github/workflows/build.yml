@@ -96,14 +96,7 @@ jobs:
                 path: dist/Old-Timey-Speak.exe
 
     build-macos:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                include:
-                  - os: macos-13
-                    name: macos-intel
-                  - os: macos-14
-                    name: macos-apple-silicon
+        runs-on: macos-14
         steps:
           - name: Checkout Code
             uses: actions/checkout@v4
@@ -121,5 +114,5 @@ jobs:
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
-                name: Old-Timey-Speak-${{ matrix.name }}
+                name: Old-Timey-Speak-MacOS-Apple-Silicon
                 path: dist/Old-Timey-Speak
