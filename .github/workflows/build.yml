@@ -15,7 +15,7 @@ jobs:
                 python-version: '3.10'
           - name: Install Dependencies
             run: |
-              sudo apt-get update && sudo apt-get install -y python-tk
+              sudo apt-get update && sudo apt-get install -y python3-tk
               pip install --upgrade pip
               pip install pyinstaller pillow openai pygame-ce
           - name: Build Executable
