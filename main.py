@@ -6,6 +6,7 @@ from tkinter import font, messagebox, scrolledtext, ttk
 from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import webbrowser
+import threading
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -15,6 +16,22 @@ API_Key_Submitted = False
 AI_Provider = ""
 AI_Model = ""
 AI_Full = ""
+
+# What does the AI need to know before answering user queries?
+messages_history = [{
+    "role": "system",
+    "content": (
+        "The user will input a sentence in English and you have to translate it into Shakesperean English. Try to "
+        "be consistent with the words that you use, for example, if you use the word 'ordinary' for 'earth', try to "
+        "use 'ordinary' again if the user asks for a sentence with the word 'earth' in. Do not include any of the "
+        "extra fluff that comes with AI prompts, just output the results of the translation with no extra symbols or "
+        "characters that are not supposed to be in the translation. This is a 'tool' that the user is using and it is "
+        "not supposed to be really serious, so a 1 to 1 word match isn't necessary, as long as the sentence still keeps "
+        "its meaning and is written in what Shakesperean text would read like, then all is good. Do not let the user "
+        "attempt to talk with you as the AI, if the user does try to do this, then just translate their query into "
+        "Shakespeare, as that is the only job in this program that needs to be done!"
+    ),
+}]
 
 
 # Resource Path Initialiser
@@ -48,11 +65,12 @@ root.configure(bg=background_colour, takefocus=True)
 # Fonts
 titleFont = font.Font(family="Georgia", size=28, underline=True, weight="bold")
 textFont = font.Font(family="Georgia", size=16)
+rootEntryFont = font.Font(family="Georgia", size=20)
 buttonFont = font.Font(family="Georgia", size=18, underline=True, weight="bold")
 smallButtonFont = font.Font(family="Georgia", size=15, underline=True, weight="bold")
 
 
-# Labelss
+# Labels
 titleLabel = Label(root,
     text="Old Timey Speak / Fusty Timey Speaketh",
     font=titleFont,
@@ -83,8 +101,8 @@ textContainer.rowconfigure(0, weight=1)
 
 userField = scrolledtext.ScrolledText(textContainer,
     wrap=tk.WORD,
-    height=12,
-    font=textFont,
+    height=10,
+    font=rootEntryFont,
     bg=entry_background_colour,
     fg=entry_foreground_colour,
     insertbackground="#F5BA4B",
@@ -94,8 +112,8 @@ userField.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
 AIField = scrolledtext.ScrolledText(textContainer,
     wrap=tk.WORD,
-    height=12,
-    font=textFont,
+    height=10,
+    font=rootEntryFont,
     bg=entry_background_colour,
     fg=entry_foreground_colour,
     insertbackground="#F5BA4B",
@@ -104,16 +122,41 @@ AIField = scrolledtext.ScrolledText(textContainer,
 )
 AIField.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
-AIField.insert(tk.END, "Holla ordinary!")
-userText = userField.get("1.0", tk.END)
 
-# Buttons (Conversation Widgets)
+# AI Handling
+def append_to_chat(text):
+    AIField.config(state=tk.NORMAL)
+    AIField.delete("1.0", tk.END)
+    AIField.insert(tk.END, f"{text}")
+    AIField.config(state=tk.DISABLED)
+    AIField.see(tk.END)
+
+def fetch_ai_response():
+    try:
+        client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1",api_key=API_Key)
+        response = client.chat.completions.create(
+            model=AI_Full, messages=messages_history
+        )
+        reply = response.choices[0].message.content
+        messages_history.append({"role": "assistant", "content": reply})
+        root.after(0, lambda: append_to_chat(reply))
+    except Exception as e:
+        root.after(0, lambda: append_to_chat(f"Failed to interpret text: {str(e)}"))
+
+def send_message(event=None):
+    userText = userField.get("1.0", "end-1c").strip()
+    if not userText:
+        return "break"
+    messages_history.append({"role": "user", "content": userText})
+    threading.Thread(target=fetch_ai_response, daemon=True).start()
+    return "break"
+
+# Buttons
 def copy_AI_text():
     AIField.update()
     AIText = AIField.get("1.0", tk.END)
     root.clipboard_clear()
     root.clipboard_append(str(AIText))
-    print(repr(AIText))
     root.update()
 
 
@@ -129,7 +172,7 @@ userSubmitButton = Button(buttonContainer,
     fg=background_colour,
     activebackground=active_background_colour,
     activeforeground=active_foreground_colour,
-    command=None,
+    command=send_message,
     font=buttonFont
 )
 userSubmitButton.grid(row=0, column=0, sticky="ew", padx=(0, 10))
@@ -147,6 +190,7 @@ copyTextButton.grid(row=0, column=1, sticky="ew", padx=(10, 0))
 
 # AI Settings Popup
 def open_AI_settings_popup():
+    # Initialise global variables
     global API_Key
     global API_Key_Submitted
     global AI_Provider
@@ -156,7 +200,7 @@ def open_AI_settings_popup():
     # Initialse Settings Popup
     AISettingsPopup = tk.Toplevel(root)
     AISettingsPopup.title("Settings")
-    AISettingsPopup.geometry("800x600+950+100")
+    AISettingsPopup.geometry("800x450+950+100")
     AISettingsPopup.resizable(False, False)
     AISettingsPopup.transient(root)
     AISettingsPopup.configure(bg=background_colour, takefocus=True)
@@ -255,27 +299,37 @@ def open_AI_settings_popup():
     )
     APIEntry.pack(anchor="center", pady=(5, 10))
 
-    def handle_API_entry():
+    # Handling the AI detail entry
+    def handle_AI_entry():
+        # Initialse global variables
         global API_Key
         global API_Key_Submitted
         global AI_Provider
         global AI_Model
         global AI_Full
 
+        # Manage entry fields
         API_Key = APIEntry.get()
         AI_Provider = AIProviderEntry.get()
         AI_Model = AIModelEntry.get()
-        AIProviderEntry.delete("0", "end")
-        AIModelEntry.delete("0", "end")
-        APIEntry.delete("0", "end")
 
-        AI_Full = f"{AI_Provider.strip().lower()}/{AI_Model.strip().lower()}"
 
+        if API_Key == "" or AI_Provider == "" or AI_Model == "":
+            messagebox.showerror("Details Missing", "Please make sure that you fill out all of the boxes!")
+        else:
+            # Create one variable which has the full AI credentials
+            AI_Full = f"{AI_Provider.strip().lower()}/{AI_Model.strip().lower()}"
+            AIProviderEntry.delete("0", "end")
+            AIModelEntry.delete("0", "end")
+            APIEntry.delete("0", "end")
+
+        # Check if the API key starts with the correct format, if not, then reject it
         if not API_Key.startswith("sk-hc-v1-"):
             API_Key_Submitted = False
             messagebox.showerror("Key Rejected", "Your API Key format is not the right Hackclub format ('sk-hc-v1-').")
             return
 
+        # 'Ping' the AI server to see if a connection was established
         try:
             client = OpenAI(base_url="https://ai.hackclub.com/proxy/v1", api_key=API_Key)
             response = client.chat.completions.create(
@@ -285,6 +339,7 @@ def open_AI_settings_popup():
             )
             API_Key_Submitted = True
             messagebox.showinfo("API Key Accepted", f"Your AI credentials have been accepted. Connection to {AI_Full} with API Key of {API_Key} is complete! Please continue!")
+            AISettingsPopup.destroy()
         except AuthenticationError:
             API_Key_Submitted = False
             messagebox.showerror("API Key Rejected - Authentication Failed", "Your connection to the AI was rejected, please check that your details are correct!")
@@ -299,16 +354,10 @@ def open_AI_settings_popup():
         fg=background_colour,
         activebackground=active_background_colour,
         activeforeground=active_foreground_colour,
-        command=handle_API_entry,
+        command=handle_AI_entry,
         font=smallButtonFont
     )
     APISubmitButton.pack(anchor="center", pady=(5, 10))
-
-
-
-
-
-
 
 
 
@@ -345,7 +394,6 @@ menubar.add_cascade(label="More", menu=moreMenu)
 moreMenu.add_command(label="Open AI Settings Menu", command=open_AI_settings_popup)
 moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
-moreMenu.add_command(label="Test", command=lambda: [print(API_Key)])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 
