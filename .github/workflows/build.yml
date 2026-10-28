@@ -19,8 +19,7 @@ jobs:
               pip install --upgrade pip
               pip install pyinstaller pillow openai pygame-ce
           - name: Build Executable
-            # Add an icon to the pyinstaller command!
-            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --icon="Assets/Parchment.ico" --add-data "Assets:Assets" Old-Timey-Speak.py
           - name: Upload Atrifact
             uses: actions/upload-artifact@v4
             with:
@@ -38,8 +37,7 @@ jobs:
           - name: Install Python Packages
             run: pip3 install pyinstaller pillow openai pygame-ce
           - name: Build Executable
-            # Add an icon to the pyinstaller command!
-            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --icon="Assets/Parchment.ico" --add-data "Assets:Assets" Old-Timey-Speak.py
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
@@ -57,8 +55,7 @@ jobs:
           - name: Install Python Packages
             run: pip install --break-system-packages pyinstaller pillow openai pygame-ce
           - name: Build Executable
-            # Add an icon to the pyinstaller command!
-            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --icon="Assets/Parchment.ico" --add-data "Assets:Assets" Old-Timey-Speak.py
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
@@ -87,8 +84,7 @@ jobs:
               python -m pip install --upgrade pip
               pip install pyinstaller pillow openai pygame-ce
           - name: Build Executable
-            # Add an icon to the pyinstaller command!
-            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets;Assets" Old-Timey-Speak.py
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --icon="Assets/Parchment.ico" --add-data "Assets;Assets" Old-Timey-Speak.py
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
@@ -109,8 +105,7 @@ jobs:
               python -m pip install --upgrade pip
               pip install pyinstaller pillow openai pygame-ce
           - name: Build Executable
-            # Add an icon to the pyinstaller command!
-            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --add-data "Assets:Assets" Old-Timey-Speak.py
+            run: pyinstaller --noconsole --onefile --name "Old-Timey-Speak" --icon="Assets/Parchment.ico" --add-data "Assets:Assets" Old-Timey-Speak.py
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:

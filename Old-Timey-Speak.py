@@ -53,6 +53,7 @@ entry_foreground_colour = "#F5EDE3"
 
 # Paths
 bg_music_path = resource_path("oldtimebackgroundmusic.mp3").replace(os.sep, '/')
+parchment_icon = resource_path("Parchment.ico").replace(os.sep, '/')
 
 # Initialise 'root' Window
 root = tk.Tk()
@@ -60,6 +61,11 @@ root.title("Old Timey Speak")
 root.geometry("800x600+100+100")
 root.resizable(False, False)
 root.configure(bg=background_colour, takefocus=True)
+
+try:
+    root.iconbitmap(parchment_icon)
+except Exception as e:
+    messagebox.showerror("Failed to load icon", f"Failed to load icon: {str(e)}")
 
 
 # Fonts
@@ -91,7 +97,7 @@ bg_canvas.create_image(0, 0, image=bg_photo, anchor="nw")
 
 bg_canvas.create_text(
     400, 17,
-    text="Old Timey Speak / Fusty Timey Speaketh",
+    text="Old Timey Speak / Olde Time Speaketh",
     font=titleFont,
     fill=foreground_colour,
     width=750,
@@ -222,6 +228,13 @@ def open_AI_settings_popup():
     AISettingsPopup.resizable(False, False)
     AISettingsPopup.transient(root)
 
+    try:
+        AISettingsPopup.iconbitmap(parchment_icon)
+    except Exception as e:
+        messagebox.showerror("Failed to load icon", f"Failed to load icon: {str(e)}")
+
+
+
     # Initialise Background Image
     settings_bg_image = Image.new("RGB", (800, 450))
     for x in range(0, 800, tile_width):
@@ -329,7 +342,7 @@ def open_AI_settings_popup():
     )
 
     settings_canvas.create_window(25, 235, window=settingsAPIDescLabel, anchor="nw", width=750)
-    settings_canvas.create_window(150, 325, window=APIEntry, anchor="nw")
+    settings_canvas.create_window(100, 325, window=APIEntry, anchor="nw")
 
     # Handling the AI detail entry
     def handle_AI_entry():
@@ -390,7 +403,6 @@ def open_AI_settings_popup():
         font=smallButtonFont
     )
     settings_canvas.create_window(300, 370, window=APISubmitButton, anchor="nw")
-
 
 
 play_music = tk.BooleanVar(value=True)
