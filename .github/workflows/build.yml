@@ -59,7 +59,7 @@ jobs:
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
-                name: Old-Timey-Speak-Linux-Redhat
+                name: Old-Timey-Speak-Linux-Arch
                 path: dist/Old-Timey-Speak
 
     build-windows:
