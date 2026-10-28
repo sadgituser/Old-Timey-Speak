@@ -52,7 +52,7 @@ entry_background_colour = "#2A1808"
 entry_foreground_colour = "#F5EDE3"
 
 # Paths
-bg_music_path = resource_path("oldtimebackground.mp3").replace(os.sep, '/')
+bg_music_path = resource_path("oldtimebackgroundmusic.mp3").replace(os.sep, '/')
 
 # Initialise 'root' Window
 root = tk.Tk()
@@ -69,31 +69,48 @@ rootEntryFont = font.Font(family="Georgia", size=20)
 buttonFont = font.Font(family="Georgia", size=18, underline=True, weight="bold")
 smallButtonFont = font.Font(family="Georgia", size=15, underline=True, weight="bold")
 
+# Looping Background Image
+tile_image = Image.open(resource_path("old-timey-background.png").replace(os.sep, '/'))
+tile_width, tile_height = tile_image.size
+
+win_width, win_height = 800, 600
+
+bg_image = Image.new("RGB", (win_width, win_height))
+for x in range(0, win_width, tile_width):
+    for y in range(0, win_height, tile_height):
+        bg_image.paste(tile_image, (x, y))
+
+bg_photo = ImageTk.PhotoImage(bg_image)
+
 
 # Labels
-titleLabel = Label(root,
+bg_canvas = tk.Canvas(root, width=800, height=600, highlightthickness=0)
+bg_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+
+bg_canvas.create_image(0, 0, image=bg_photo, anchor="nw")
+
+bg_canvas.create_text(
+    400, 17,
     text="Old Timey Speak / Fusty Timey Speaketh",
     font=titleFont,
-    bg=background_colour,
-    fg=foreground_colour,
-    wraplength=750,
-    justify="center"
+    fill=foreground_colour,
+    width=750,
+    justify="center",
+    anchor="n"
 )
-titleLabel.pack(anchor="center", pady=(15, 10))
 
-descLabel = Label(root,
+bg_canvas.create_text(
+    400, 111,
     text="Here you can input your text and an AI will turn the text into words from Shakespeare's era!",
     font=textFont,
-    bg=background_colour,
-    fg=foreground_colour,
-    wraplength=750,
-    justify="center"
+    fill=foreground_colour,
+    width=750,
+    justify="center",
+    anchor="n"
 )
-descLabel.pack(anchor="center", pady=10)
 
-# Scrolled Text (Conversation Widgets)
-textContainer = tk.Frame(root, bg=background_colour)
-textContainer.pack(fill=tk.BOTH, padx=20, pady=15)
+# Scrolled Text
+textContainer = tk.Frame(bg_canvas, bg=background_colour)
 textContainer.columnconfigure(0, weight=1)
 textContainer.columnconfigure(1, weight=1)
 textContainer.rowconfigure(0, weight=1)
@@ -122,6 +139,8 @@ AIField = scrolledtext.ScrolledText(textContainer,
 )
 AIField.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
+bg_canvas.create_window(20, 180, window=textContainer, anchor="nw", width=760, height=330)
+
 
 # AI Handling
 def append_to_chat(text):
@@ -147,6 +166,7 @@ def send_message(event=None):
     userText = userField.get("1.0", "end-1c").strip()
     if not userText:
         return "break"
+    append_to_chat("Thinking...")
     messages_history.append({"role": "user", "content": userText})
     threading.Thread(target=fetch_ai_response, daemon=True).start()
     return "break"
@@ -160,8 +180,7 @@ def copy_AI_text():
     root.update()
 
 
-buttonContainer = tk.Frame(root, bg=background_colour)
-buttonContainer.pack(fill=tk.X, padx=20, pady=(0, 15))
+buttonContainer = tk.Frame(bg_canvas, bg=background_colour)
 buttonContainer.columnconfigure(0, weight=1, uniform="buttons")
 buttonContainer.columnconfigure(1, weight=1, uniform="buttons")
 buttonContainer.rowconfigure(0, weight=1)
@@ -188,14 +207,13 @@ copyTextButton = Button(buttonContainer,
 )
 copyTextButton.grid(row=0, column=1, sticky="ew", padx=(10, 0))
 
+bg_canvas.create_window(20, 520, window=buttonContainer, anchor="nw", width=760, height=50)
+
+
 # AI Settings Popup
 def open_AI_settings_popup():
     # Initialise global variables
-    global API_Key
-    global API_Key_Submitted
-    global AI_Provider
-    global AI_Model
-    global AI_Full
+    global API_Key, API_Key_Submitted, AI_Provider, AI_Model, AI_Full
 
     # Initialse Settings Popup
     AISettingsPopup = tk.Toplevel(root)
@@ -203,31 +221,44 @@ def open_AI_settings_popup():
     AISettingsPopup.geometry("800x450+950+100")
     AISettingsPopup.resizable(False, False)
     AISettingsPopup.transient(root)
-    AISettingsPopup.configure(bg=background_colour, takefocus=True)
 
-    # AI Settings Widgets
-    settingsTitleLabel = tk.Label(AISettingsPopup,
+    # Initialise Background Image
+    settings_bg_image = Image.new("RGB", (800, 450))
+    for x in range(0, 800, tile_width):
+        for y in range(0, 450, tile_height):
+            settings_bg_image.paste(tile_image, (x, y))
+
+    settings_bg_photo = ImageTk.PhotoImage(settings_bg_image)
+    AISettingsPopup.bg_photo = settings_bg_photo
+
+    # Canvas with Background Image
+    settings_canvas = tk.Canvas(AISettingsPopup, width=800, height=450, highlightthickness=0)
+    settings_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+    settings_canvas.create_image(0, 0, image=settings_bg_photo, anchor="nw")
+
+    
+    # AI Settings Labels, Entries, Buttons and Frames
+    settings_canvas.create_text(
+        400, 20,
         text="Settings!",
         font=titleFont,
-        bg=background_colour,
-        fg=foreground_colour,
-        wraplength=750,
-        justify="center"
+        fill=foreground_colour,
+        width=750,
+        justify="center",
+        anchor="n"
     )
-    settingsTitleLabel.pack(anchor="center", pady=(15, 10))
 
-    settingsProviderLabel = tk.Label(AISettingsPopup,
+    settings_canvas.create_text(
+        400, 75,
         text="Here you can change the AI settings. Ensure that you spell everything correctly!",
         font=textFont,
-        bg=background_colour,
-        fg=foreground_colour,
-        wraplength=750,
-        justify="center"
+        fill=foreground_colour,
+        width=750,
+        justify="center",
+        anchor="n"
     )
-    settingsProviderLabel.pack(anchor="center", pady=(5, 10))
 
-    AIContainer = tk.Frame(AISettingsPopup, bg=background_colour)
-    AIContainer.pack(fill=tk.X, padx=20, pady=(0, 15))
+    AIContainer = tk.Frame(settings_canvas, bg=background_colour)
     AIContainer.rowconfigure(0, weight=1)
     AIContainer.rowconfigure(1, weight=1)
     AIContainer.columnconfigure(0, weight=1)
@@ -235,7 +266,6 @@ def open_AI_settings_popup():
 
     AIProvider = StringVar(value="openai")
     AIModel = StringVar(value="gpt-4o")
-
 
     AIProviderLabel = tk.Label(AIContainer,
         text="Enter the AI Provider Name: (e.g. openai, anthropic, deepseek)",
@@ -275,8 +305,9 @@ def open_AI_settings_popup():
     )
     AIModelEntry.grid(row=1, column=1, sticky="ew", padx=(7, 7))
 
+    settings_canvas.create_window(20, 140, window=AIContainer, anchor="nw", width=760)
 
-    settingsAPIDescLabel = tk.Label(AISettingsPopup,
+    settingsAPIDescLabel = tk.Label(settings_canvas,
         text="Here you can submit the Hackclub API Key that you need for the AI to work. The API Key must be from " \
         "(ai.hackclub.com) and only API Keys with Hackclub's format will be permitted!",
         font=textFont,
@@ -285,11 +316,10 @@ def open_AI_settings_popup():
         wraplength=750,
         justify="center"
     )
-    settingsAPIDescLabel.pack(anchor="center", pady=(5, 10))
 
     APIVar = StringVar(value="Enter your API Key!")
 
-    APIEntry = tk.Entry(AISettingsPopup,
+    APIEntry = tk.Entry(settings_canvas,
         bg=entry_background_colour,
         fg=entry_foreground_colour,
         font=textFont,
@@ -297,7 +327,9 @@ def open_AI_settings_popup():
         width=50,
         insertbackground=foreground_colour
     )
-    APIEntry.pack(anchor="center", pady=(5, 10))
+
+    settings_canvas.create_window(25, 235, window=settingsAPIDescLabel, anchor="nw", width=750)
+    settings_canvas.create_window(150, 325, window=APIEntry, anchor="nw")
 
     # Handling the AI detail entry
     def handle_AI_entry():
@@ -338,7 +370,7 @@ def open_AI_settings_popup():
                 max_tokens=5
             )
             API_Key_Submitted = True
-            messagebox.showinfo("API Key Accepted", f"Your AI credentials have been accepted. Connection to {AI_Full} with API Key of {API_Key} is complete! Please continue!")
+            messagebox.showinfo("API Key Accepted", f"Your AI credentials have been accepted. Connection to {AI_Full} with API Key of ({API_Key}) is complete! Please continue!")
             AISettingsPopup.destroy()
         except AuthenticationError:
             API_Key_Submitted = False
@@ -348,7 +380,7 @@ def open_AI_settings_popup():
             messagebox.showerror("Connection Error", f"Could not connect to the AI. Error: {str(e)}")
 
 
-    APISubmitButton = tk.Button(AISettingsPopup,
+    APISubmitButton = tk.Button(settings_canvas,
         text="Submit AI Information",
         bg=foreground_colour,
         fg=background_colour,
@@ -357,7 +389,7 @@ def open_AI_settings_popup():
         command=handle_AI_entry,
         font=smallButtonFont
     )
-    APISubmitButton.pack(anchor="center", pady=(5, 10))
+    settings_canvas.create_window(300, 370, window=APISubmitButton, anchor="nw")
 
 
 
