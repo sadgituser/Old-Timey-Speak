@@ -54,6 +54,9 @@ entry_foreground_colour = "#F5EDE3"
 # Paths
 bg_music_path = resource_path("oldtimebackgroundmusic.mp3").replace(os.sep, '/')
 parchment_icon = resource_path("Parchment.ico").replace(os.sep, '/')
+etsy_image_path = resource_path("photo3.png").replace(os.sep, '/')
+mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
+terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
 
 # Initialise 'root' Window
 root = tk.Tk()
@@ -404,7 +407,117 @@ def open_AI_settings_popup():
     )
     settings_canvas.create_window(300, 370, window=APISubmitButton, anchor="nw")
 
+# About Me Popup
+def open_about_me_popup():
+    # Initialise About Me Popup
+    aboutMePopupWidth = 700
+    aboutMePopupHeight = 500
 
+    aboutMePopup = tk.Toplevel(root)
+    aboutMePopup.title("About Me")
+    aboutMePopup.geometry(f"{aboutMePopupWidth}x{aboutMePopupHeight}+100+100")
+    aboutMePopup.resizable(False, False)
+
+    # Set up canvas and icon
+    try:
+        aboutMePopup.iconbitmap(parchment_icon)
+    except Exception as e:
+        messagebox.showerror("Failed to load icon", f"Failed to load icon: {str(e)}")
+
+    about_me_bg_image = Image.new("RGB", (aboutMePopupWidth, aboutMePopupHeight))
+    for x in range(0, aboutMePopupWidth, tile_width):
+        for y in range(0, aboutMePopupHeight, tile_height):
+            about_me_bg_image.paste(tile_image, (x, y))
+
+    about_me_bg_photo = ImageTk.PhotoImage(about_me_bg_image)
+    aboutMePopup.bg_photo = about_me_bg_photo
+
+    about_me_canvas = tk.Canvas(aboutMePopup, width=aboutMePopupWidth, height=aboutMePopupHeight, highlightthickness=0)
+    about_me_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+    about_me_canvas.create_image(0, 0, image=about_me_bg_photo, anchor="nw")
+
+    # About Me Canvas Widgets
+    about_me_canvas.create_text(
+        aboutMePopupWidth // 2, 20,
+        text="About Me (The Dev)!",
+        font=titleFont,
+        fill=foreground_colour,
+        width=(aboutMePopupWidth - 50),
+        justify="center",
+        anchor="n"
+    )
+
+    about_me_canvas.create_text(
+        (aboutMePopupWidth // 2), 75,
+        text="A little about myself. I am a 15 year old making small projects for fun. " \
+        "This project was for the Terra Hackclub (https://terra.hackclub.com) project (which you can find by clicking on the fox below)! " \
+        "It is honestly quite fun, and I really enjoy making cool fun things for little fun projects like these. " \
+        "My GitHub is at (https://github.com/sadgituser) (TPC UK button below) where you can find many more of my projects! " \
+        "Currently there is nowhere that you can support my work, but you can check out my Etsy shop at (https://theprintedcraftuk.etsy.com) (TPC UK button below)! " \
+        "You could also email me if you want to contact me by clicking on the mail icon below! ",
+        font=textFont,
+        fill=foreground_colour,
+        width=(aboutMePopupWidth - 50),
+        justify="center",
+        anchor="n"
+    )
+
+
+    buttonY = 425
+
+    etsy_pil_image = Image.open(etsy_image_path)
+    etsy_image = ImageTk.PhotoImage(etsy_pil_image)
+    about_me_canvas.etsy_image = etsy_image
+
+    def openEtsy():
+        webbrowser.open_new("https://theprintedcraftuk.etsy.com")
+        webbrowser.open_new_tab("https://github.com/sadgituser")
+
+    etsy_logo_button = tk.Button(aboutMePopup,
+        image=etsy_image,
+        command=openEtsy,
+        padx=10, 
+        pady=3
+    )
+    about_me_canvas.create_window(aboutMePopupWidth // 4, buttonY, window=etsy_logo_button)
+
+
+    terra_pil_image = Image.open(terra_image_path)
+    terra_image = ImageTk.PhotoImage(terra_pil_image)
+    about_me_canvas.terra_image = terra_image
+
+    def openTerra():
+        webbrowser.open_new("https://terra.hackclub.com")
+
+    terra_button = tk.Button(aboutMePopup,
+        image=terra_image,
+        command=openTerra,
+        padx=10,
+        pady=3
+    )
+    about_me_canvas.create_window(aboutMePopupWidth // 2, buttonY, window=terra_button)
+
+
+    mail_pil_image = Image.open(mail_image_path)
+    mail_image = ImageTk.PhotoImage(mail_pil_image)
+    about_me_canvas.mail_image = mail_image
+
+    def openMail():
+        webbrowser.open_new("mailto:kavi@mistrypi.dev")
+
+    mail_button = tk.Button(aboutMePopup,
+        image=mail_image,
+        command=openMail,
+        padx=10, 
+        pady=3
+    )
+    about_me_canvas.create_window((aboutMePopupWidth // 4 + aboutMePopupWidth // 2), buttonY, window=mail_button)
+
+
+
+
+
+# Music Handling
 play_music = tk.BooleanVar(value=True)
 pygame.mixer.init()
 try:
@@ -426,6 +539,7 @@ def check_music():
 
 check_music()
 
+# Menu handling
 menubar = tk.Menu(root)
 moreMenu = Menu(menubar,
     tearoff=0,
@@ -435,12 +549,14 @@ moreMenu = Menu(menubar,
     activeforeground=active_foreground_colour
 )
 menubar.add_cascade(label="More", menu=moreMenu)
-moreMenu.add_command(label="Open AI Settings Menu", command=open_AI_settings_popup)
+moreMenu.add_command(label="Open AI Settings Popup", command=open_AI_settings_popup)
+moreMenu.add_command(label="Open About Me Popup", command=open_about_me_popup)
 moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 
+# Initialise windows
 userField.focus()
 root.config(menu=menubar)
 open_AI_settings_popup()
