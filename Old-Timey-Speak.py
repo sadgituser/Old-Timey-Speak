@@ -2,7 +2,8 @@ import os
 import sys
 import tkinter as tk
 from tkinter import *
-from tkinter import font, messagebox, scrolledtext, ttk
+import json
+from tkinter import font, messagebox, scrolledtext, ttk, filedialog
 from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import webbrowser
@@ -10,12 +11,32 @@ import threading
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
+
+# Config file setup
+if getattr(sys, 'frozen', False):
+    base_dir = os.path.dirname(sys.executable)
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_FILE = os.path.join(base_dir, "config.json")
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+config_data = load_config()
+
 # AI Initialiser
-API_Key = ""
-API_Key_Submitted = False
-AI_Provider = ""
-AI_Model = ""
-AI_Full = ""
+API_Key = config_data.get("api_key", "")
+API_Key_Submitted = bool(API_Key)
+AI_Provider = config_data.get("ai_provider", "openai")
+AI_Model = config_data.get("ai_model", "gpt-4o")
+AI_Full = f"{AI_Provider}/{AI_Model}" if AI_Provider and AI_Model else ""
 
 # What does the AI need to know before answering user queries?
 messages_history = [{
@@ -152,6 +173,19 @@ AIField.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 bg_canvas.create_window(20, 180, window=textContainer, anchor="nw", width=760, height=330)
 
 
+# Animate 3 dots when thinking
+def animate_thinking(dot_count=1):
+    current_text = AIField.get("1.0", "1.9")
+    if "Thinking" in current_text:
+        dots = "." * dot_count
+        AIField.config(state=tk.NORMAL)
+        AIField.delete("1.0", tk.END)
+        AIField.insert(tk.END, f"Thinking{dots}")
+        AIField.config(state=tk.DISABLED)
+        next_count = (dot_count % 3) + 1
+        root.after(400, lambda: animate_thinking(next_count))
+
+
 # AI Handling
 def append_to_chat(text):
     AIField.config(state=tk.NORMAL)
@@ -176,10 +210,40 @@ def send_message(event=None):
     userText = userField.get("1.0", "end-1c").strip()
     if not userText:
         return "break"
-    append_to_chat("Thinking...")
+    
+    append_to_chat("Thinking.")
+    animate_thinking(2)
+
     messages_history.append({"role": "user", "content": userText})
     threading.Thread(target=fetch_ai_response, daemon=True).start()
     return "break"
+
+def export_history():
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".md",
+        initialfile="Old-Timey-Speak-History.md",
+        filetypes=[("Markdown/Text Files", "*.md"), ("Text Files", "*.txt"), ("All Files", "*.*")],
+        title="Export Translation History"
+    )
+    if file_path:
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                i = 0
+                while i < len(messages_history):
+                    msg = messages_history[i]
+                    if msg.get("role") == "user":
+                        user_content = msg.get("content")
+                        assistant_content = ""
+
+                        if i + 1 < len(messages_history) and messages_history[i+1].get("role") == "assistant":
+                            assistant_content = messages_history[i+1].get("content")
+
+                        f.write(f"**USER:** {user_content}\n")
+                        f.write(f"**TRANSLATION:** {assistant_content}\n\n")
+                    i += 1
+            messagebox.showinfo("Export Successful!", f"History successfully saved to \n{file_path}")
+        except Exception as e:
+            messagebox.showerror("Export Failed!", f"Could not save file: {str(e)}")
 
 # Buttons
 def copy_AI_text():
@@ -267,7 +331,7 @@ def open_AI_settings_popup():
 
     settings_canvas.create_text(
         400, 75,
-        text="Here you can change the AI settings. Ensure that you spell everything correctly!",
+        text="Here you can change the AI settings. Ensure that you spell everything correctly! Settings are saved in a config file! ",
         font=textFont,
         fill=foreground_colour,
         width=750,
@@ -281,8 +345,8 @@ def open_AI_settings_popup():
     AIContainer.columnconfigure(0, weight=1)
     AIContainer.columnconfigure(1, weight=1)
 
-    AIProvider = StringVar(value="openai")
-    AIModel = StringVar(value="gpt-4o")
+    AIProvider = StringVar(value=AI_Provider if AI_Provider else "openai")
+    AIModel = StringVar(value=AI_Model if AI_Model else "gpt-4o")
 
     AIProviderLabel = tk.Label(AIContainer,
         text="Enter the AI Provider Name: (e.g. openai, anthropic, deepseek)",
@@ -334,7 +398,7 @@ def open_AI_settings_popup():
         justify="center"
     )
 
-    APIVar = StringVar(value="Enter your API Key!")
+    APIVar = StringVar(value=API_Key if API_Key else "Enter your API Key!")
 
     APIEntry = tk.Entry(settings_canvas,
         bg=entry_background_colour,
@@ -351,11 +415,7 @@ def open_AI_settings_popup():
     # Handling the AI detail entry
     def handle_AI_entry():
         # Initialse global variables
-        global API_Key
-        global API_Key_Submitted
-        global AI_Provider
-        global AI_Model
-        global AI_Full
+        global API_Key, API_Key_Submitted, AI_Provider, AI_Model, AI_Full
 
         # Manage entry fields
         API_Key = APIEntry.get()
@@ -387,6 +447,15 @@ def open_AI_settings_popup():
                 max_tokens=5
             )
             API_Key_Submitted = True
+
+            config_data = {
+                "api_key": API_Key,
+                "ai_provider": AI_Provider,
+                "ai_model": AI_Model
+            }
+            with open(CONFIG_FILE, "w") as f:
+                json.dump(config_data, f)
+
             messagebox.showinfo("API Key Accepted", f"Your AI credentials have been accepted. Connection to {AI_Full} with API Key of ({API_Key}) is complete! Please continue!")
             AISettingsPopup.destroy()
         except AuthenticationError:
@@ -619,6 +688,8 @@ moreMenu.add_command(label="Open AI Settings Popup", command=open_AI_settings_po
 moreMenu.add_command(label="Open About Me Popup", command=open_about_me_popup)
 moreMenu.add_command(label="Open About Shakespeare Popup", command=open_shakespeare_popup)
 moreMenu.add_separator()
+moreMenu.add_command(label="Export History to .txt", command=export_history)
+moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
@@ -626,5 +697,6 @@ moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 # Initialise windows
 userField.focus()
 root.config(menu=menubar)
-open_AI_settings_popup()
+if not API_Key or not API_Key.startswith("sk-hc-v1"):
+    open_AI_settings_popup()
 root.mainloop()
