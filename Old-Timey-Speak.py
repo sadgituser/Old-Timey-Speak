@@ -57,6 +57,7 @@ parchment_icon = resource_path("Parchment.ico").replace(os.sep, '/')
 etsy_image_path = resource_path("photo3.png").replace(os.sep, '/')
 mail_image_path = resource_path("photo4.png").replace(os.sep, '/')
 terra_image_path = resource_path("photo2.png").replace(os.sep, '/')
+wikipedia_image_path = resource_path("photo5.png").replace(os.sep, '/')
 
 # Initialise 'root' Window
 root = tk.Tk()
@@ -454,7 +455,7 @@ def open_about_me_popup():
         "It is honestly quite fun, and I really enjoy making cool fun things for little fun projects like these. " \
         "My GitHub is at (https://github.com/sadgituser) (TPC UK button below) where you can find many more of my projects! " \
         "Currently there is nowhere that you can support my work, but you can check out my Etsy shop at (https://theprintedcraftuk.etsy.com) (TPC UK button below)! " \
-        "You could also email me if you want to contact me by clicking on the mail icon below! ",
+        "You could also email me if you want to contact me by clicking on the mail icon below! Sources information on GitHub README. ",
         font=textFont,
         fill=foreground_colour,
         width=(aboutMePopupWidth - 50),
@@ -513,7 +514,72 @@ def open_about_me_popup():
     )
     about_me_canvas.create_window((aboutMePopupWidth // 4 + aboutMePopupWidth // 2), buttonY, window=mail_button)
 
+# Shakespeare Popup
+def open_shakespeare_popup():
+    # Initialise Shakespeare Window
+    shakespearePopupWidth = 700
+    shakespearePopupHeight = 400
 
+    shakespearePopup = tk.Toplevel(root)
+    shakespearePopup.title("About Shakespeare")
+    shakespearePopup.geometry(f"{shakespearePopupWidth}x{shakespearePopupHeight}+110+110")
+    shakespearePopup.resizable(False, False)
+
+    try:
+        shakespearePopup.iconbitmap(parchment_icon)
+    except Exception as e:
+        messagebox.showerror("Failed to load icon", f"Failed to load icon {str(e)}")
+
+    shakespeare_bg_image = Image.new("RGB", (shakespearePopupWidth, shakespearePopupHeight))
+    for x in range(0, shakespearePopupWidth, tile_width):
+        for y in range(0, shakespearePopupHeight, tile_height):
+            shakespeare_bg_image.paste(tile_image, (x, y))
+
+    shakespeare_bg_photo = ImageTk.PhotoImage(shakespeare_bg_image)
+    shakespearePopup.bg_photo = shakespeare_bg_photo
+
+    shakespeare_canvas = tk.Canvas(shakespearePopup, width=shakespearePopupWidth, height=shakespearePopupHeight, highlightthickness=0)
+    shakespeare_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+    shakespeare_canvas.create_image(0, 0, image=shakespeare_bg_photo, anchor="nw")
+
+    # Canvas Widgets
+    shakespeare_canvas.create_text(
+        shakespearePopupWidth // 2, 20,
+        text="About Shakespeare",
+        font=titleFont,
+        fill=foreground_colour,
+        width=(shakespearePopupWidth - 50),
+        justify="center",
+        anchor="n"
+    )
+
+    shakespeare_canvas.create_text(
+        shakespearePopupWidth // 2, 75,
+        text="William Shakespeare (23 April 1564 - 23 April 1516) was an English Poet, Playwright (play writer) " \
+        "and solo actor much regarded as the greatest poet in the English Language! (Source: Wikipedia). Click on the " \
+        "Wikipedia link below to learn more about Shakespeare and how he was one of the most revolutionising poets to " \
+        "ever grace the English language! Sources information on GitHub README.",
+        font=textFont,
+        fill=foreground_colour,
+        width=(shakespearePopupWidth - 50),
+        justify="center",
+        anchor="n"
+    )
+
+    wikipedia_pil_image = Image.open(wikipedia_image_path)
+    wikipedia_image = ImageTk.PhotoImage(wikipedia_pil_image)
+    shakespeare_canvas.wikipedia_image = wikipedia_image
+
+    def openWiki():
+        webbrowser.open_new("https://en.wikipedia.org/wiki/William_Shakespeare")
+
+    wikipedia_button = tk.Button(shakespearePopup,
+        image=wikipedia_image,
+        command=openWiki,
+        padx=10, 
+        pady=3
+    )
+    shakespeare_canvas.create_window(shakespearePopupWidth // 2, 325, window=wikipedia_button)
 
 
 
@@ -551,6 +617,7 @@ moreMenu = Menu(menubar,
 menubar.add_cascade(label="More", menu=moreMenu)
 moreMenu.add_command(label="Open AI Settings Popup", command=open_AI_settings_popup)
 moreMenu.add_command(label="Open About Me Popup", command=open_about_me_popup)
+moreMenu.add_command(label="Open About Shakespeare Popup", command=open_shakespeare_popup)
 moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
 moreMenu.add_separator()

@@ -11,7 +11,7 @@ Check out my GitHub [here](https://github.com/sadgituser) or my [Etsy Shop](http
 ![The icon of my Etsy shop](/Assets/photo3.png)
 
 
-[Music Assets](https://pixabay.com/music/beats-good-old-times-old-school-rap-beat-265634/) & [Hackclub Assets](https://hackclub.com/brand)
+[Music Assets](https://pixabay.com/music/beats-good-old-times-old-school-rap-beat-265634/) & [Hackclub Assets](https://hackclub.com/brand) & [Wikipedia Assets / Sources](https://en.wikipedia.org/wiki/William_Shakespeare)
 
 
 Made for the [Hackclub Terra](https://terra.hackclub.com) project for [Hackclub](https://hackclub.com).
