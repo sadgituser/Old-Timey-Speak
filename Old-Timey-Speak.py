@@ -63,14 +63,129 @@ def resource_path(relative_path: str):
         base_path = os.path.dirname(__file__)
     return os.path.join(base_path, "Assets", relative_path)
 
+# Theme colour palette dictionary
+THEMES = {
+    "Victorian Burgundy": {
+        "background_colour": "#3B1A22",
+        "active_background_colour": "#5C2834",
+        "foreground_colour": "#D4AF37",
+        "entry_background_colour": "#2A1808",
+        "entry_foreground_colour": "#F5EDE3",
+        "bg_file": "old-timey-background.png"
+    },
+    "Victorian Castle": {
+        "background_colour": "#2A2629",
+        "active_background_colour": "#4A4347",
+        "foreground_colour": "#D4AF37",
+        "entry_background_colour": "#1A1719",
+        "entry_foreground_colour": "#EAE6E8",
+        "bg_file": "old-timey-background-castle.png"
+    },
+    "Parchment Mode": {
+        "background_colour": "#F4EBE1",
+        "active_background_colour": "#E3D2C3",
+        "foreground_colour": "#D4AF37",
+        "entry_background_colour": "#FFFFFF",
+        "entry_foreground_colour": "#2B1B0C",
+        "bg_file": "old-timey-background-day.png"
+    },
+    "Royal Forest": {
+        "background_colour": "#1E2B20",
+        "active_background_colour": "#344A37",
+        "foreground_colour": "#D4AF37",
+        "entry_background_colour": "#121A13",
+        "entry_foreground_colour": "#EAF2EB",
+        "bg_file": "old-timey-background-forest.png"
+    },
+    "Midnight Mode": {
+        "background_colour": "#1A1D2B",
+        "active_background_colour": "#2C334D",
+        "foreground_colour": "#D4AF37",
+        "entry_background_colour": "#10121B",
+        "entry_foreground_colour": "#E6E8F2",
+        "bg_file": "old-timey-background-midnight.png"
+    }
+}
+
+config_data = load_config()
+current_theme_name = config_data.get("theme", "Victorian Burgundy")
+if current_theme_name not in THEMES:
+    current_theme_name = "Victorian Burgundy"
+
+active_theme = THEMES[current_theme_name]
 
 # Colours
-background_colour = "#3B1A22"
-foreground_colour = "#D4AF37"
-active_background_colour = "#5C2834"
+background_colour = active_theme["background_colour"]
+foreground_colour = active_theme["foreground_colour"]
+active_background_colour = active_theme["active_background_colour"]
 active_foreground_colour = "#FFE875"
-entry_background_colour = "#2A1808"
-entry_foreground_colour = "#F5EDE3"
+entry_background_colour = active_theme["entry_background_colour"]
+entry_foreground_colour = active_theme["entry_foreground_colour"]
+
+
+def apply_theme(theme_name):
+    global background_colour, foreground_colour, active_background_colour, active_foreground_colour
+    global entry_background_colour, entry_foreground_colour, current_theme_name, active_theme
+    global bg_photo, tile_image, tile_width, tile_height
+
+    current_theme_name = theme_name
+    active_theme = THEMES[theme_name]
+
+    background_colour = active_theme["background_colour"]
+    foreground_colour = active_theme["foreground_colour"]
+    active_background_colour = active_theme["active_background_colour"]
+    entry_background_colour = active_theme["entry_background_colour"]
+    entry_foreground_colour = active_theme["entry_foreground_colour"]
+
+    config_data["theme"] = theme_name
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config_data, f)
+
+    tile_image = Image.open(resource_path(active_theme["bg_file"])).replace(os.sep, '/') if hasattr(Image.open(resource_path(active_theme["bg_file"])), 'replace') else Image.open(resource_path(active_theme["bg_file"]))
+    tile_width, tile_height = tile_image.size
+
+    bg_image = Image.new("RGB", (800, 600))
+    for x in range(0, 800, tile_width):
+        for y in range(0, 600, tile_height):
+            bg_image.paste(tile_image, (x, y))
+    bg_photo = ImageTk.PhotoImage(bg_image)
+    root.bg_photo = bg_photo
+
+    bg_canvas.delete("all")
+    bg_canvas.create_image(0, 0, image=bg_photo, anchor="nw")
+    bg_canvas.create_text(
+        400, 17, 
+        text="Old Timey Speak / Olde Time Speaketh",
+        font=titleFont, 
+        fill=foreground_colour, 
+        width=750,
+        justify="center",
+        anchor="n"
+    )
+
+    bg_canvas.create_text(
+        400, 111,
+        text="Here you can input your text and an AI will turn the text into words from Shakespeare's era!",
+        font=textFont,
+        fill=foreground_colour,
+        width=750,
+        justify="center",
+        anchor="n"
+    )
+
+    textContainer.config(bg=background_colour)
+    userField.config(bg=entry_background_colour, fg=entry_foreground_colour)
+    AIField.config(bg=entry_background_colour, fg=entry_foreground_colour)
+    bg_canvas.create_window(20, 180, window=textContainer, anchor="nw", width=760, height=330)
+
+    buttonContainer.config(bg=background_colour)
+    userSubmitButton.config(bg=foreground_colour, fg=background_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
+    copyTextButton.config(bg=foreground_colour, fg=background_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
+    bg_canvas.create_window(20, 520, window=buttonContainer, anchor="nw", width=760, height=50)
+
+    moreMenu.config(bg=background_colour, fg=foreground_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)    
+
+
 
 # Paths
 bg_music_path = resource_path("oldtimebackgroundmusic.mp3").replace(os.sep, '/')
@@ -101,7 +216,7 @@ buttonFont = font.Font(family="Georgia", size=18, underline=True, weight="bold")
 smallButtonFont = font.Font(family="Georgia", size=15, underline=True, weight="bold")
 
 # Looping Background Image
-tile_image = Image.open(resource_path("old-timey-background.png").replace(os.sep, '/'))
+tile_image = Image.open(resource_path((active_theme["bg_file"])).replace(os.sep, '/'))
 tile_width, tile_height = tile_image.size
 
 win_width, win_height = 800, 600
@@ -292,7 +407,7 @@ def open_AI_settings_popup():
     # Initialse Settings Popup
     AISettingsPopup = tk.Toplevel(root)
     AISettingsPopup.title("Settings")
-    AISettingsPopup.geometry("800x450+950+100")
+    AISettingsPopup.geometry("800x530+950+100")
     AISettingsPopup.resizable(False, False)
     AISettingsPopup.transient(root)
 
@@ -304,23 +419,23 @@ def open_AI_settings_popup():
 
 
     # Initialise Background Image
-    settings_bg_image = Image.new("RGB", (800, 450))
+    settings_bg_image = Image.new("RGB", (800, 530))
     for x in range(0, 800, tile_width):
-        for y in range(0, 450, tile_height):
+        for y in range(0, 530, tile_height):
             settings_bg_image.paste(tile_image, (x, y))
 
     settings_bg_photo = ImageTk.PhotoImage(settings_bg_image)
     AISettingsPopup.bg_photo = settings_bg_photo
 
     # Canvas with Background Image
-    settings_canvas = tk.Canvas(AISettingsPopup, width=800, height=450, highlightthickness=0)
+    settings_canvas = tk.Canvas(AISettingsPopup, width=800, height=530, highlightthickness=0)
     settings_canvas.place(x=0, y=0, relwidth=1, relheight=1)
     settings_canvas.create_image(0, 0, image=settings_bg_photo, anchor="nw")
 
     
     # AI Settings Labels, Entries, Buttons and Frames
     settings_canvas.create_text(
-        400, 20,
+        400, 15,
         text="Settings!",
         font=titleFont,
         fill=foreground_colour,
@@ -330,7 +445,7 @@ def open_AI_settings_popup():
     )
 
     settings_canvas.create_text(
-        400, 75,
+        400, 65,
         text="Here you can change the AI settings. Ensure that you spell everything correctly! Settings are saved in a config file! ",
         font=textFont,
         fill=foreground_colour,
@@ -339,6 +454,7 @@ def open_AI_settings_popup():
         anchor="n"
     )
 
+    # AI Model Selection Section
     AIContainer = tk.Frame(settings_canvas, bg=background_colour)
     AIContainer.rowconfigure(0, weight=1)
     AIContainer.rowconfigure(1, weight=1)
@@ -386,8 +502,9 @@ def open_AI_settings_popup():
     )
     AIModelEntry.grid(row=1, column=1, sticky="ew", padx=(7, 7))
 
-    settings_canvas.create_window(20, 140, window=AIContainer, anchor="nw", width=760)
+    settings_canvas.create_window(20, 125, window=AIContainer, anchor="nw", width=760)
 
+    # API Key Section
     settingsAPIDescLabel = tk.Label(settings_canvas,
         text="Here you can submit the Hackclub API Key that you need for the AI to work. The API Key must be from " \
         "(ai.hackclub.com) and only API Keys with Hackclub's format will be permitted!",
@@ -406,11 +523,60 @@ def open_AI_settings_popup():
         font=textFont,
         textvariable=APIVar,
         width=50,
-        insertbackground=foreground_colour
+        insertbackground=foreground_colour,
     )
 
-    settings_canvas.create_window(25, 235, window=settingsAPIDescLabel, anchor="nw", width=750)
-    settings_canvas.create_window(100, 325, window=APIEntry, anchor="nw")
+    settings_canvas.create_window(25, 230, window=settingsAPIDescLabel, anchor="nw", width=750)
+    settings_canvas.create_window(400, 320, window=APIEntry, anchor="n", width=650)
+
+
+    ThemeContainer = tk.Frame(settings_canvas, bg=background_colour)
+    ThemeContainer.rowconfigure(0, weight=1)
+    ThemeContainer.rowconfigure(1, weight=1)
+    ThemeContainer.columnconfigure(0, weight=1)
+
+    ThemeLabel = tk.Label(ThemeContainer,
+        text="Select App Theme: ",
+        font=textFont,
+        bg=background_colour,
+        fg=foreground_colour
+    )
+    ThemeLabel.grid(row=0, column=0, pady=(0, 4))
+
+    style = ttk.Style()
+    style.theme_use('clam')
+    style.configure('TCombobox',
+        fieldbackground=entry_background_colour,
+        background=active_background_colour,
+        foreground=entry_foreground_colour,
+        arrowcolor=foreground_colour,
+        darkcolor=background_colour,
+        lightcolor=background_colour,
+        bordercolor=foreground_colour
+    )
+    style.map('TCombobox',
+        fieldbackground=[('readonly', entry_background_colour)],
+        selectbackground=[('readonly', entry_background_colour)],
+        selectforeground=[('readonly', active_foreground_colour)]
+    )
+    root.option_add('*TCombobox*Listbox.background', entry_background_colour)
+    root.option_add('*TCombobox*Listbox.foreground', entry_foreground_colour)
+    root.option_add('*TCombobox*Listbox.selectBackground', active_background_colour)
+    root.option_add('*TCombobox*Listbox.selectForeground', active_foreground_colour)
+
+
+    ThemeVar = StringVar(value=current_theme_name)
+    ThemeDropdown = ttk.Combobox(ThemeContainer,
+        textvariable=ThemeVar,
+        values=list(THEMES.keys()),
+        state="readonly",
+        font=textFont,
+        width=22
+    )
+    ThemeDropdown.grid(row=1, column=0, sticky="ew")
+
+    settings_canvas.create_window(20, 380, window=ThemeContainer, anchor="nw", width=760)
+
 
     # Handling the AI detail entry
     def handle_AI_entry():
@@ -425,16 +591,12 @@ def open_AI_settings_popup():
 
         if API_Key == "" or AI_Provider == "" or AI_Model == "":
             messagebox.showerror("Details Missing", "Please make sure that you fill out all of the boxes!")
-        else:
-            # Create one variable which has the full AI credentials
-            AI_Full = f"{AI_Provider.strip().lower()}/{AI_Model.strip().lower()}"
-            AIProviderEntry.delete("0", "end")
-            AIModelEntry.delete("0", "end")
-            APIEntry.delete("0", "end")
+            return
+
+        AI_Full = f"{AI_Provider.strip().lower()}/{AI_Model.strip().lower()}"
 
         # Check if the API key starts with the correct format, if not, then reject it
         if not API_Key.startswith("sk-hc-v1-"):
-            API_Key_Submitted = False
             messagebox.showerror("Key Rejected", "Your API Key format is not the right Hackclub format ('sk-hc-v1-').")
             return
 
@@ -448,24 +610,29 @@ def open_AI_settings_popup():
             )
             API_Key_Submitted = True
 
-            config_data = {
+            selected_theme = ThemeVar.get()
+            apply_theme(selected_theme)
+
+            config_data.update({
                 "api_key": API_Key,
                 "ai_provider": AI_Provider,
-                "ai_model": AI_Model
-            }
+                "ai_model": AI_Model,
+                "theme": selected_theme
+            })
             with open(CONFIG_FILE, "w") as f:
                 json.dump(config_data, f)
 
-            messagebox.showinfo("API Key Accepted", f"Your AI credentials have been accepted. Connection to {AI_Full} with API Key of ({API_Key}) is complete! Please continue!")
-            AISettingsPopup.destroy()
+            messagebox.showinfo("Success", "Settings and theme applied instantly!")
+
+            for widget in root.winfo_children():
+                if isinstance(widget, tk.Toplevel):
+                    widget.destroy()
         except AuthenticationError:
             API_Key_Submitted = False
-            messagebox.showerror("API Key Rejected - Authentication Failed", "Your connection to the AI was rejected, please check that your details are correct!")
+            messagebox.showerror("API Key Rejected", "Authentication failed, please check your deatils!")
         except Exception as e:
-            API_Key_Submitted = False
-            messagebox.showerror("Connection Error", f"Could not connect to the AI. Error: {str(e)}")
-
-
+            messagebox.showerror("Connection Error", f"Could not connect to AI: {str(e)}")
+    
     APISubmitButton = tk.Button(settings_canvas,
         text="Submit AI Information",
         bg=foreground_colour,
@@ -475,7 +642,9 @@ def open_AI_settings_popup():
         command=handle_AI_entry,
         font=smallButtonFont
     )
-    settings_canvas.create_window(300, 370, window=APISubmitButton, anchor="nw")
+    settings_canvas.create_window(300, 470, window=APISubmitButton, anchor="nw")
+
+
 
 # About Me Popup
 def open_about_me_popup():
