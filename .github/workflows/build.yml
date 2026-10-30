@@ -1,4 +1,4 @@
-name: Build Old Timey Speak Executables (for different Operating Systems). Internal Run ID - 3
+name: Build Old Timey Speak Executables (for different Operating Systems).
 
 on:
     workflow_dispatch:
@@ -109,5 +109,5 @@ jobs:
           - name: Upload Artifact
             uses: actions/upload-artifact@v4
             with:
-                name: Old-Timey-Speak-MacOS-Apple-Silicon
+                name: Old-Timey-Speak-MacOS-Apple-Silicon-(MacOS-14)
                 path: dist/Old-Timey-Speak
