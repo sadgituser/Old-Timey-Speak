@@ -7,23 +7,32 @@ This app is available on:
 
 
 To run the program, just go over to the _['Releases'](https://github.com/sadgituser/Old-Timey-Speak/releases)_ tab on the right and download the folder of the latest release of the app on your Operating System (listed above).
+
 If you want to run the program yourself, then just download the source code, use the _requirements.txt_ file and run the app or modify it to your heart's content! 
+
 This program is just fun, and **not an actual translator** as it only uses an AI with a startup prompt to allow users to turn their text into Shakesperean style text, **if you want an actual Shakesperean text translator, then don't use this one!**
-I also added colour customisation to the script so you can choose from a _preset_ of colours!
-I also have added personas so that you can change what type of old England era AI you want to translate your text! Current personas are:
- + Classic Shakespaere
- + Medieval Knight
- + Victorian Aristocrat
- + Pirate Captain
+
+I also added **colour customisation** to the script so you can choose from a _preset_ of colours!
+
+I also have added **personas** so that you can change what type of _old England era AI_ you want to translate your text! Current personas are:
+ + _Classic_ Shakespaere
+ + _Medieval_ Knight
+ + _Victorian_ Aristocrat
+ + Pirate _Captain_
 
 
 Settings, API Keys, colour presets and personas are saved locally in a config.json file generated in the application folder, **DO NOT MOVE IT else your settings will be erased!**
 
-![Screenshot of the _latest version_ of the app!](/Assets/appScreenshot.png)
+
+![Screenshot of the latest version of the app!](/Assets/appScreenshot.png)
+
+
 
 You can also _export your translation history_ to a _Old-Timey-Speak-History.md_ (a special text file) file via the menu!
 If you are worried about _.md_ files, then you can use _.txt_ as a file format instead!
 You can open _.md_ (markdown) files in Notepad or any (most) note taking app(s)!
+
+There are also _Issue Templates_ so that you can easily report a bug or request a new feature (if I have time for it)!
 
 
 Check out my GitHub [here](https://github.com/sadgituser) or my [Etsy Shop](https://theprintedcraftuk.etsy.com)!
