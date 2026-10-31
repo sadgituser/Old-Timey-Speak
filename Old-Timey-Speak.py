@@ -164,8 +164,8 @@ def apply_theme(theme_name):
     )
 
     bg_canvas.create_text(
-        400, 111,
-        text="Here you can input your text and an AI will turn the text into words from Shakespeare's era!",
+        400, 75,
+        text="Here you can input your text and an AI will turn the text into words from Shakespeare's era! Press 'Shift + Enter' to submit the message! ",
         font=textFont,
         fill=foreground_colour,
         width=750,
@@ -177,6 +177,10 @@ def apply_theme(theme_name):
     userField.config(bg=entry_background_colour, fg=entry_foreground_colour)
     AIField.config(bg=entry_background_colour, fg=entry_foreground_colour)
     bg_canvas.create_window(20, 180, window=textContainer, anchor="nw", width=760, height=330)
+
+    presetContainer.config(bg=background_colour)
+    presetButton1.config(bg=foreground_colour, fg=background_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
+    bg_canvas.create_window(20, 130, window=presetContainer, anchor="nw", width=760, height=40)
 
     buttonContainer.config(bg=background_colour)
     userSubmitButton.config(bg=foreground_colour, fg=background_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
@@ -214,6 +218,7 @@ textFont = font.Font(family="Georgia", size=16)
 rootEntryFont = font.Font(family="Georgia", size=20)
 buttonFont = font.Font(family="Georgia", size=18, underline=True, weight="bold")
 smallButtonFont = font.Font(family="Georgia", size=15, underline=True, weight="bold")
+presetButtonFont = font.Font(family="Georgia", size=13, weight="bold")
 
 # Looping Background Image
 tile_image = Image.open(resource_path((active_theme["bg_file"])).replace(os.sep, '/'))
@@ -246,8 +251,8 @@ bg_canvas.create_text(
 )
 
 bg_canvas.create_text(
-    400, 111,
-    text="Here you can input your text and an AI will turn the text into words from Shakespeare's era!",
+    400, 75,
+    text="Here you can input your text and an AI will turn the text into words from Shakespeare's era! Press 'Shift + Enter' to submit the message! ",
     font=textFont,
     fill=foreground_colour,
     width=750,
@@ -264,7 +269,7 @@ textContainer.rowconfigure(0, weight=1)
 
 userField = scrolledtext.ScrolledText(textContainer,
     wrap=tk.WORD,
-    height=10,
+    height=9,
     font=rootEntryFont,
     bg=entry_background_colour,
     fg=entry_foreground_colour,
@@ -275,7 +280,7 @@ userField.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
 AIField = scrolledtext.ScrolledText(textContainer,
     wrap=tk.WORD,
-    height=10,
+    height=9,
     font=rootEntryFont,
     bg=entry_background_colour,
     fg=entry_foreground_colour,
@@ -286,6 +291,46 @@ AIField = scrolledtext.ScrolledText(textContainer,
 AIField.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
 bg_canvas.create_window(20, 180, window=textContainer, anchor="nw", width=760, height=330)
+
+
+presetContainer = tk.Frame(bg_canvas, bg=background_colour)
+presetContainer.columnconfigure((0, 1, 2), weight=1, uniform="presets")
+presetContainer.rowconfigure(0, weight=1)
+
+presetButton1 = tk.Button(presetContainer,
+    text="What's up?",
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+    command=lambda: load_preset("What's up?"),
+    font=presetButtonFont
+)
+presetButton1.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+
+presetButton2 = tk.Button(presetContainer,
+    text="I love Python Apps!",
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+    command=lambda: load_preset("I love Python Apps!"),
+    font=presetButtonFont
+)
+presetButton2.grid(row=0, column=1, sticky="ew", padx=(5, 5))
+
+presetButton3 = tk.Button(presetContainer,
+    text="Shakespeare never dies",
+    bg=foreground_colour,
+    fg=background_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour,
+    command=lambda: load_preset("Shakespeare never dies"),
+    font=presetButtonFont
+)
+presetButton3.grid(row=0, column=2, sticky="ew", padx=(5, 0))
+
+bg_canvas.create_window(20, 130, window=presetContainer, anchor="nw", width=760, height=40)
 
 
 # Animate 3 dots when thinking
@@ -359,6 +404,12 @@ def export_history():
             messagebox.showinfo("Export Successful!", f"History successfully saved to \n{file_path}")
         except Exception as e:
             messagebox.showerror("Export Failed!", f"Could not save file: {str(e)}")
+
+def load_preset(text: str):
+    userField.delete("1.0", tk.END)
+    userField.insert("1.0", text)
+    send_message()
+
 
 # Buttons
 def copy_AI_text():
@@ -622,7 +673,7 @@ def open_AI_settings_popup():
             with open(CONFIG_FILE, "w") as f:
                 json.dump(config_data, f)
 
-            messagebox.showinfo("Success", "Settings and theme applied instantly!")
+            messagebox.showinfo("Success", "Settings and theme applied!")
 
             for widget in root.winfo_children():
                 if isinstance(widget, tk.Toplevel):
@@ -643,7 +694,6 @@ def open_AI_settings_popup():
         font=smallButtonFont
     )
     settings_canvas.create_window(300, 470, window=APISubmitButton, anchor="nw")
-
 
 
 # About Me Popup
@@ -863,9 +913,19 @@ moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=l
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 
+# If 'Shift+Enter' is pressed then submit the message
+def handle_return(event):
+    if event.state & 0x0001:
+        send_message()
+        return "break"
+    else:
+        return
+
+
 # Initialise windows
 userField.focus()
 root.config(menu=menubar)
+root.bind("<Return>", handle_return)
 if not API_Key or not API_Key.startswith("sk-hc-v1"):
     open_AI_settings_popup()
 root.mainloop()
