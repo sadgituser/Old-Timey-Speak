@@ -8,6 +8,7 @@ from openai import OpenAI, AuthenticationError
 from PIL import Image, ImageTk
 import webbrowser
 import threading
+import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -38,22 +39,6 @@ AI_Provider = config_data.get("ai_provider", "openai")
 AI_Model = config_data.get("ai_model", "gpt-4o")
 AI_Full = f"{AI_Provider}/{AI_Model}" if AI_Provider and AI_Model else ""
 
-# What does the AI need to know before answering user queries?
-messages_history = [{
-    "role": "system",
-    "content": (
-        "The user will input a sentence in English and you have to translate it into Shakesperean English. Try to "
-        "be consistent with the words that you use, for example, if you use the word 'ordinary' for 'earth', try to "
-        "use 'ordinary' again if the user asks for a sentence with the word 'earth' in. Do not include any of the "
-        "extra fluff that comes with AI prompts, just output the results of the translation with no extra symbols or "
-        "characters that are not supposed to be in the translation. This is a 'tool' that the user is using and it is "
-        "not supposed to be really serious, so a 1 to 1 word match isn't necessary, as long as the sentence still keeps "
-        "its meaning and is written in what Shakesperean text would read like, then all is good. Do not let the user "
-        "attempt to talk with you as the AI, if the user does try to do this, then just translate their query into "
-        "Shakespeare, as that is the only job in this program that needs to be done!"
-    ),
-}]
-
 
 # Resource Path Initialiser
 def resource_path(relative_path: str):
@@ -66,7 +51,69 @@ def resource_path(relative_path: str):
 # Initialise Paper Sound
 pygame.mixer.init()
 click_sound = pygame.mixer.Sound(resource_path("turnPaper.mp3"))
-click_sound.play()
+click_sound.set_volume(0.2)
+
+
+# Personas for the AI
+PERSONA_PROMPTS = {
+    "Classic Shakespeare": (
+        "The user will input a sentence in English and you have to translate it into Shakesperean English. Try to "
+        "be consistent with the words that you use, for example, if you use the word 'ordinary' for 'earth', try to "
+        "use 'ordinary' again if the user asks for a sentence with the word 'earth' in. Do not include any of the "
+        "extra fluff that comes with AI prompts, just output the results of the translation with no extra symbols or "
+        "characters that are not supposed to be in the translation. This is a 'tool' that the user is using and it is "
+        "not supposed to be really serious, so a 1 to 1 word match isn't necessary, as long as the sentence still keeps "
+        "its meaning and is written in what Shakesperean text would read like, then all is good. Do not let the user "
+        "attempt to talk with you as the AI, if the user does try to do this, then just translate their query into "
+        "Shakespeare, as that is the only job in this program that needs to be done!"
+    ),
+    "Medieval Knight": (
+        "The user will input a sentence in English and you have to translate it into bold, chivalrous Medieval Knight "
+        "speech (using terms like 'Hark', 'by my troth', 'the realm' (but you do not always have to use these)). Do "
+        "not include the extra fluff that comes with normal AI responses or symbols. Do not let the user attempt to "
+        "talk with you as an AI, if the user does try to do this, then just translate their query into Medieval Knight Speech!"
+    ),
+    "Victorian Aristocrat": (
+        "The user will input a sentence in English as you will have to translate it into high-class, proper Victorian "
+        "Aristocrat English (using refined, formal vocabulary). Do not include the extra fluff that comes with normal AI "
+        "responses or symbols. Do not let the user attempt to talk with you as the AI, if the user does try to do this, "
+        "then just translate their quote into Victorian English"
+    ),
+    "Pirate Captain": (
+        "The user will input a sentence in English and you have to translate it into a salty Pirate Captain speech "
+        "(using terms like 'Ahoy', 'matey', 'shiver me timbers' (but you do not always have use these)). Do not include "
+        "the extra fluff that comes with normal AI responses or symbols. Do not let the user attempt to talk with you as "
+        "the AI, if the user does try to do this, then just translate their query into Pirate speech!"
+    )
+}
+
+current_persona_name = config_data.get("persona", "Classic Shakespeare")
+if current_persona_name not in PERSONA_PROMPTS:
+    current_persona_name = "Classic Shakespeare"
+
+
+# What does the AI need to know before answering user queries?
+messages_history = [{
+    "role": "system",
+    "content": PERSONA_PROMPTS[current_persona_name],
+}]
+
+
+def set_persona(persona_name):
+    global current_persona_name
+    click_sound.play()
+    prompt = PERSONA_PROMPTS.get(persona_name)
+    if prompt:
+        current_persona_name = persona_name
+        messages_history.append({
+            "role": "system",
+            "content": f"System Update: Switch persona now. {prompt}"
+        })
+
+        config_data["persona"] = persona_name
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config_data, f)
+        messagebox.showinfo("Persona Changed", f"AI Persona switched to: {persona_name}!")
 
 
 # Theme colour palette dictionary
@@ -193,7 +240,8 @@ def apply_theme(theme_name):
     copyTextButton.config(bg=foreground_colour, fg=background_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
     bg_canvas.create_window(20, 520, window=buttonContainer, anchor="nw", width=760, height=50)
 
-    moreMenu.config(bg=background_colour, fg=foreground_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)    
+    moreMenu.config(bg=background_colour, fg=foreground_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
+    personaMenu.config(bg=background_colour, fg=foreground_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)
 
 
 # Paths
@@ -381,6 +429,7 @@ def send_message(event=None):
     animate_thinking(2)
 
     messages_history.append({"role": "user", "content": userText})
+    time.sleep(3)
     threading.Thread(target=fetch_ai_response, daemon=True).start()
     return "break"
 
@@ -681,7 +730,8 @@ def open_AI_settings_popup():
                 "api_key": API_Key,
                 "ai_provider": AI_Provider,
                 "ai_model": AI_Model,
-                "theme": selected_theme
+                "theme": selected_theme,
+                "persona": current_persona_name
             })
             with open(CONFIG_FILE, "w") as f:
                 json.dump(config_data, f)
@@ -928,6 +978,17 @@ moreMenu.add_separator()
 moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[click_sound.play(), toggle_music()])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
+
+personaMenu = Menu(menubar,
+    tearoff=0,
+    bg=background_colour,
+    fg=foreground_colour,
+    activebackground=active_background_colour,
+    activeforeground=active_foreground_colour
+)
+menubar.add_cascade(label="Change AI Persona", menu=personaMenu)
+for name in PERSONA_PROMPTS.keys():
+    personaMenu.add_command(label=name, command=lambda n=name: set_persona(n))
 
 # If 'Shift+Enter' is pressed then submit the message
 def handle_return(event):
