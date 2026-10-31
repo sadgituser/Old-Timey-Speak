@@ -6,11 +6,18 @@ This app is available on:
  + MacOS (Apple Silicon)
 
 
-To run the program, just go over to the _['Releases'](https://github.com/sadgituser/Old-Timey-Speak/releases)_ tab on the right and download the zipped file of the latest release of the app on your Operating System (listed above).
+To run the program, just go over to the _['Releases'](https://github.com/sadgituser/Old-Timey-Speak/releases)_ tab on the right and download the folder of the latest release of the app on your Operating System (listed above).
+If you want to run the program yourself, then just download the source code, use the _requirements.txt_ file and run the app or modify it to your heart's content! 
 This program is just fun, and **not an actual translator** as it only uses an AI with a startup prompt to allow users to turn their text into Shakesperean style text, **if you want an actual Shakesperean text translator, then don't use this one!**
-I also added colour customisation to the script so you can choose from a preset of colours!
+I also added colour customisation to the script so you can choose from a _preset_ of colours!
+I also have added personas so that you can change what type of old England era AI you want to translate your text! Current personas are:
+ + Classic Shakespaere
+ + Medieval Knight
+ + Victorian Aristocrat
+ + Pirate Captain
 
-Settings, API Keys and colour preset are saved locally in a config.json file generated in the application folder, **DO NOT MOVE IT else your settings will be erased!**
+
+Settings, API Keys, colour presets and personas are saved locally in a config.json file generated in the application folder, **DO NOT MOVE IT else your settings will be erased!**
 
 ![Screenshot of the _latest version_ of the app!](/Assets/appScreenshot.png)
 

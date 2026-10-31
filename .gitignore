@@ -1,3 +1,8 @@
 config.json
-__pycache__
+__pycache__/
+build/
+dist/
+*.spec
 .vscode
+.DS_Store
+Thumbs.db
