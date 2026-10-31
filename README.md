@@ -24,7 +24,7 @@ Check out my GitHub [here](https://github.com/sadgituser) or my [Etsy Shop](http
 ![The icon of my Etsy shop](/Assets/photo3.png)
 
 
-[Music Assets](https://pixabay.com/music/beats-good-old-times-old-school-rap-beat-265634/) & [Hackclub Assets](https://hackclub.com/brand) & [Wikipedia Assets / Sources](https://en.wikipedia.org/wiki/William_Shakespeare)
+[Music Assets](https://pixabay.com/music/beats-good-old-times-old-school-rap-beat-265634/) & [Hackclub Assets](https://hackclub.com/brand) & [Wikipedia Assets / Sources](https://en.wikipedia.org/wiki/William_Shakespeare) & [Sound Effects Assets](https://pixabay.com/sound-effects/film-special-effects-foley-paper-handling-amp-page-turning-sfx-584919/)
 
 
 Made for the [Hackclub Terra](https://terra.hackclub.com) project for [Hackclub](https://hackclub.com).

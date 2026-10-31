@@ -63,6 +63,12 @@ def resource_path(relative_path: str):
         base_path = os.path.dirname(__file__)
     return os.path.join(base_path, "Assets", relative_path)
 
+# Initialise Paper Sound
+pygame.mixer.init()
+click_sound = pygame.mixer.Sound(resource_path("turnPaper.mp3"))
+click_sound.play()
+
+
 # Theme colour palette dictionary
 THEMES = {
     "Victorian Burgundy": {
@@ -188,7 +194,6 @@ def apply_theme(theme_name):
     bg_canvas.create_window(20, 520, window=buttonContainer, anchor="nw", width=760, height=50)
 
     moreMenu.config(bg=background_colour, fg=foreground_colour, activebackground=active_background_colour, activeforeground=active_foreground_colour)    
-
 
 
 # Paths
@@ -353,6 +358,7 @@ def append_to_chat(text):
     AIField.insert(tk.END, f"{text}")
     AIField.config(state=tk.DISABLED)
     AIField.see(tk.END)
+    click_sound.play()
 
 def fetch_ai_response():
     try:
@@ -379,6 +385,7 @@ def send_message(event=None):
     return "break"
 
 def export_history():
+    click_sound.play()
     file_path = filedialog.asksaveasfilename(
         defaultextension=".md",
         initialfile="Old-Timey-Speak-History.md",
@@ -406,6 +413,7 @@ def export_history():
             messagebox.showerror("Export Failed!", f"Could not save file: {str(e)}")
 
 def load_preset(text: str):
+    click_sound.play()
     userField.delete("1.0", tk.END)
     userField.insert("1.0", text)
     send_message()
@@ -413,11 +421,15 @@ def load_preset(text: str):
 
 # Buttons
 def copy_AI_text():
+    click_sound.play()
     AIField.update()
     AIText = AIField.get("1.0", tk.END)
     root.clipboard_clear()
     root.clipboard_append(str(AIText))
     root.update()
+
+    copyTextButton.config(text="COPIED!")
+    root.after(1500, lambda: copyTextButton.config(text="COPY TEXT"))
 
 
 buttonContainer = tk.Frame(bg_canvas, bg=background_colour)
@@ -452,6 +464,7 @@ bg_canvas.create_window(20, 520, window=buttonContainer, anchor="nw", width=760,
 
 # AI Settings Popup
 def open_AI_settings_popup():
+    click_sound.play()
     # Initialise global variables
     global API_Key, API_Key_Submitted, AI_Provider, AI_Model, AI_Full
 
@@ -690,14 +703,14 @@ def open_AI_settings_popup():
         fg=background_colour,
         activebackground=active_background_colour,
         activeforeground=active_foreground_colour,
-        command=handle_AI_entry,
+        command=lambda: [click_sound.play(), handle_AI_entry()],
         font=smallButtonFont
     )
     settings_canvas.create_window(300, 470, window=APISubmitButton, anchor="nw")
 
-
 # About Me Popup
 def open_about_me_popup():
+    click_sound.play()
     # Initialise About Me Popup
     aboutMePopupWidth = 700
     aboutMePopupHeight = 500
@@ -759,6 +772,7 @@ def open_about_me_popup():
     about_me_canvas.etsy_image = etsy_image
 
     def openEtsy():
+        click_sound.play()
         webbrowser.open_new("https://theprintedcraftuk.etsy.com")
         webbrowser.open_new_tab("https://github.com/sadgituser")
 
@@ -776,6 +790,7 @@ def open_about_me_popup():
     about_me_canvas.terra_image = terra_image
 
     def openTerra():
+        click_sound.play()
         webbrowser.open_new("https://terra.hackclub.com")
 
     terra_button = tk.Button(aboutMePopup,
@@ -792,6 +807,7 @@ def open_about_me_popup():
     about_me_canvas.mail_image = mail_image
 
     def openMail():
+        click_sound.play()
         webbrowser.open_new("mailto:kavi@mistrypi.dev")
 
     mail_button = tk.Button(aboutMePopup,
@@ -804,9 +820,10 @@ def open_about_me_popup():
 
 # Shakespeare Popup
 def open_shakespeare_popup():
+    click_sound.play()
     # Initialise Shakespeare Window
     shakespearePopupWidth = 700
-    shakespearePopupHeight = 400
+    shakespearePopupHeight = 375
 
     shakespearePopup = tk.Toplevel(root)
     shakespearePopup.title("About Shakespeare")
@@ -863,17 +880,16 @@ def open_shakespeare_popup():
 
     wikipedia_button = tk.Button(shakespearePopup,
         image=wikipedia_image,
-        command=openWiki,
+        command=lambda: [click_sound.play(), openWiki()],
         padx=10, 
         pady=3
     )
-    shakespeare_canvas.create_window(shakespearePopupWidth // 2, 325, window=wikipedia_button)
+    shakespeare_canvas.create_window(shakespearePopupWidth // 2, 300, window=wikipedia_button)
 
 
 
 # Music Handling
 play_music = tk.BooleanVar(value=True)
-pygame.mixer.init()
 try:
     pygame.mixer.music.load(bg_music_path)
     pygame.mixer.music.set_volume(0.3)
@@ -909,12 +925,13 @@ moreMenu.add_command(label="Open About Shakespeare Popup", command=open_shakespe
 moreMenu.add_separator()
 moreMenu.add_command(label="Export History to .txt", command=export_history)
 moreMenu.add_separator()
-moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[toggle_music()])
+moreMenu.add_checkbutton(label="Toggle BG Music", variable=play_music, command=lambda:[click_sound.play(), toggle_music()])
 moreMenu.add_separator()
 moreMenu.add_command(label="Close Program", command=lambda: [root.destroy()])
 
 # If 'Shift+Enter' is pressed then submit the message
 def handle_return(event):
+    click_sound.play()
     if event.state & 0x0001:
         send_message()
         return "break"
